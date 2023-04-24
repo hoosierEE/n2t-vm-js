@@ -1,0 +1,5 @@
+* JavaScript backend for Nand2Tetris Virtual Machine
+This project provides a software emulation of the Nand2Tetris virtual machine.
+
+Like the VM Emulator provided by the Nand2Tetris authors, this backend accepts .vm files as input.
+The backend allows you to pause and resume VM execution, inspect or manipulate the virtual RAM contents at any time, and run simple test scripts.
