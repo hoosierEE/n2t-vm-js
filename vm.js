@@ -1,77 +1,89 @@
 'use strict';
-// javascript backend for Nand2Tetris virtual machine
-
-const ptr={sp:0,local:1,argument:2,pointer:3,this:3,that:4,temp:5,static:16};
-const stat=16;//static vars start here
-
-//Transform line into a space-separated list of words in a command. May return an empty list.
-function normalize(line){return line.split(/\/\//)[0].split(/[ \t]+/).filter(x=>x)}
-
-//Return subset of RAM as {address:value,} object.
-function showRam(addresses){return addresses.reduce((acc,k,i)=>(acc[k]=RAM[addresses[i]],acc), {});}
-function show_ram(n){return RAM.slice(0,n)}
-
-//globals
 let RAM,RAMSIZE=32768;
-function initRam(size=RAMSIZE){RAMSIZE=size;RAM=new Int16Array(size); RAM[0]=256;}
+const ptr={sp:0,local:1,argument:2,pointer:3,this:3,that:4,temp:5,static:16,nvars:0}
+const lut={}//lookup table for label:instruction pairs
+const tokenize=line=>line.split(/\/\//)[0].split(/\s+/).filter(x=>x), sp=()=>RAM[ptr.sp], s1=()=>sp()-1, s2=()=>sp()-2;
+function spInc(){RAM[ptr.sp]+=1}
+function spDec(){RAM[ptr.sp]-=1}
+function pop(){spDec();return RAM[sp()]}
+function popTo(segment,offset){RAM[ptr[segment]+offset]=pop()}
+function push(x){RAM[sp()]=x;spInc()}
+function pushFrom(segment,offset){push(RAM[ptr[segment]+offset])}
+function add(){RAM[s2()]=   RAM[s2()] +RAM[s1()];  spDec()}
+function and(){RAM[s2()]=   RAM[s2()] &RAM[s1()];  spDec()}
+function or (){RAM[s2()]=   RAM[s2()] |RAM[s1()];  spDec()}
+function sub(){RAM[s2()]=   RAM[s2()] -RAM[s1()];  spDec()}
+function eq (){RAM[s2()]=0-(RAM[s2()]==RAM[s1()]); spDec()}//true:-1  false:0
+function gt (){RAM[s2()]=0-(RAM[s2()] >RAM[s1()]); spDec()}
+function lt (){RAM[s2()]=0-(RAM[s2()] <RAM[s1()]); spDec()}
+function neg(){RAM[s1()]=0-RAM[s1()]}
+function not(){RAM[s1()]=~RAM[s1()]}//bitwise
 
-//stack
-function sp(){return RAM[ptr.sp];}
-function s1(){return sp()-1;}
-function s2(){return sp()-2;}
-function spInc(){RAM[ptr.sp]+=1;}
-function spDec(){RAM[ptr.sp]-=1;}
+//TODO: control flow
+// When reading a line of input, add commands to an array.
+// Array index can be a jump target.
+// Labels can be {labelName: index} pairs in a lookup table.
 
-//memory
-function pop(){spDec();return RAM[sp()];}
-function popTo(segment,offset){RAM[ptr[segment]+offset]=pop();}
-function push(x){RAM[sp()]=x;spInc();}
-function pushFrom(segment,offset){push(RAM[ptr[segment]+offset]);}
+//TODO: functions
 
-//arith
-function add(){RAM[s2()]=   RAM[s2()] +RAM[s1()];  spDec();}
-function and(){RAM[s2()]=   RAM[s2()] &RAM[s1()];  spDec();}
-function or() {RAM[s2()]=   RAM[s2()] |RAM[s1()];  spDec();}
-function sub(){RAM[s2()]=   RAM[s2()] -RAM[s1()];  spDec();}
-//compare: true is -1, false is 0
-function eq() {RAM[s2()]=-(+RAM[s2()]==RAM[s1()]); spDec();}
-function gt() {RAM[s2()]=-(+RAM[s2()] >RAM[s1()]); spDec();}
-function lt() {RAM[s2()]=-(+RAM[s2()] <RAM[s1()]); spDec();}
-//unary
-function neg(){RAM[s1()]=-RAM[s1()];}
-function not(){RAM[s1()]=~RAM[s1()];}//bitwise
-
-//parse
-function run(line){
-  const l=normalize(line), arith={add,and,or,sub,eq,gt,lt,neg,not};
-  if(Array.isArray(l) && l.length==0){return true;}
-  else if(l[0]=='push'){
-    if(l[1]=='constant'){push(l[2]);}
-    else if(l[1]in ptr){pushFrom(l[1],l[2]);}
-    else{return false;}
+function parse(line,pc){
+  const l=tokenize(line), arith={add,and,or,sub,eq,gt,lt,neg,not};
+  if(l[0]=='push'){
+    if(l[1]=='constant')return[push, l[2]]
+    if(l[1]in ptr)return[pushFrom,l[1],l[2]]
   }
-  else if(l[0]=='pop'){popTo(l[1],l[2]);}
-  else if(l[0]in arith){arith[l[0]]();}
-  else{return false;}
-  return true;
+  if(l[0]=='pop'){
+    if(l.length==3)return[popTo,l[1],l[2]]
+    return[popTo,'static',ptr.nvars++]
+  }
+  if(l[0]in arith)return[arith[l[0]]]
+  return[]
 }
 
-function test(cmd){
-  if(run(cmd)){return RAM[s1()];}
-  else{return `Error: ${cmd}`;}
+function initRam(size=RAMSIZE){RAMSIZE=size;RAM=new Int16Array(size);RAM[0]=256}
+function initSegments(l,a,s,t){RAM[ptr.local]=l;RAM[ptr.argument]=110;RAM[ptr.this]=s;RAM[ptr.that]=t}
+function tests(cmds){
+  initRam(500)
+  initSegments(100,110,200,210)
+  let results=[], errors={}
+  for(let i in cmds){
+    const cmd=cmds[i]
+    let r=parse(cmd)
+    if(r.length){
+      1/0
+    }
+    if(parse(cmd))results.push(RAM[s1()])
+    else errors[i]=cmd
+  }
+  return {results,errors}
 }
 
-initRam(300);
-test('')
-test('//a comment');
-test('bad command');
-test('push constant 3');
-test('push constant 2');
-test('pop static 0');
-test('pop static 1');
-test('push static 0'); // 2
-test('push static 1'); // 3
-test('sub');
+let sometests = tests([
+  '//a comment',
+  'bad command',
+  'push constant 3 //blah blah blah',
+  'push constant 2',
+  '// more comments',
+  'pop static 0',
+  'pop static 1',
+  'push static 0',
+  'push static 1',
+  'sub'
+]);
+
+console.log(sometests);
+
+// initRam(300);
+// test('')
+// test('//a comment');
+// test('bad command');
+// test('push constant 3');
+// test('push constant 2');
+// test('pop static 0');
+// test('pop static 1');
+// test('push static 0'); // 2
+// test('push static 1'); // 3
+// test('sub');
 
 // initRam(300);//tests
 // push(3); console.log(sp(),RAM[s1()]);
