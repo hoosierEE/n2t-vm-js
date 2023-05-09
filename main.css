@@ -1,0 +1,18 @@
+:root{--vm-text:#333; --vm-bg:#eee; --vm-link:#07b;}
+@media (prefers-color-scheme: dark) {
+    :root{--vm-text:#eee; --vm-bg:#555; --vm-link:#7cf;}
+    img:not([src$=".svg"]) {filter: brightness(70%);}
+}
+a{color:var(--vm-link)}
+body{
+    color:var(--vm-text);
+    background-color:var(--vm-bg);
+    font-family:sans-serif;
+    max-width:60em;
+    margin:auto;
+    padding:1em;
+}
+h1{text-align:center}
+code{font-size:1.05em;padding:0 1px;border:1px solid var(--vm-text)}
+textarea#program {height:10em;width:50%}
+textarea#cli {width:50%}
