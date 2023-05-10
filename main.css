@@ -1,9 +1,11 @@
-:root{--vm-text:#333; --vm-bg:#eee; --vm-link:#07b;}
-@media (prefers-color-scheme: dark) {
-    :root{--vm-text:#eee; --vm-bg:#555; --vm-link:#7cf;}
-    img:not([src$=".svg"]) {filter: brightness(70%);}
+:root{--vm-text:#333;--vm-bg:#eee;--vm-link:#07b;--vm-tooltip:#888;}
+@media(prefers-color-scheme:dark){
+    :root{--vm-text:#eee;--vm-bg:#555;--vm-link:#7cf;}
+    img:not([src$=".svg"]){filter:brightness(70%);}
 }
-a{color:var(--vm-link)}
+
+*{box-sizing:border-box;}
+a{color:var(--vm-link);}
 body{
     color:var(--vm-text);
     background-color:var(--vm-bg);
@@ -12,7 +14,26 @@ body{
     margin:auto;
     padding:1em;
 }
-h1{text-align:center}
-code{font-size:1.05em;padding:0 1px;border:1px solid var(--vm-text)}
-textarea#program {height:10em;width:50%}
-textarea#cli {width:50%}
+h1{text-align:center;}
+code{font-size:1.05em;padding:0 1px;border:1px solid var(--vm-tooltip);}
+
+.container{
+    border:1px dotted blue;
+    display:grid;
+    /* grid-auto-columns:15em; */
+    /* grid-auto-rows:5em; */
+    /* grid-template-columns: 1fr 1fr 1fr 1fr; */
+    /* grid-template-rows: repeat */
+    place-items:stretch;
+    grid-template-areas:
+        "r r stack local this"
+        "r r stack argument that"
+        "r r pointer . .";
+}
+.repl textarea{grid-area:r;}
+.stack{grid-area:stack;}
+.local{grid-area:local;}
+.argument{grid-area:argument;}
+.this{grid-area:this;}
+.that{grid-area:that;}
+.pointer{grid-area:pointer;}

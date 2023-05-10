@@ -6,20 +6,23 @@
     <meta name="description" content="online nand2tetris vm">
     <title>VM Emulator</title>
     <link rel="stylesheet" href="main.css">
-    <!-- <link rel="icon" href="favicon.svg" type="image/svg+xml"> -->
-    <!-- <link rel="stylesheet" href="codemirror-5.65.0/lib/codemirror.css"> -->
-    <!-- use one of the following themes: -->
-    <!-- <link rel="stylesheet" href="codemirror-5.65.0/theme/nord.css"> -->
-    <!-- <link rel="stylesheet" href="codemirror-5.65.0/theme/eclipse.css"> -->
-    <!-- <link rel="stylesheet" href="codemirror-5.65.0/addon/lint/lint.css"> -->
-    <!-- <link rel="canonical" href="alexshroyer.com/vme/index.html"> -->
   </head>
   <body>
     <header><h1>VM <em>emulator</em></h1></header>
     <main>
-      <textarea id="program"></textarea>
-      <textarea id="cli" autofocus></textarea>
-      <p>Breaking changes from <a href="https://www.nand2tetris.org/">Nand2Tetris</a> VM Translator:
+      <div class="container">
+        <div class="repl">
+          <textarea id="program" placeholder="Program"></textarea>
+          <textarea id="cli" placeholder="Shift+Enter for multi-line input" autofocus></textarea>
+        </div>
+        <div class="segment stack">stack</div>
+        <div class="segment local">local</div>
+        <div class="segment argument">argument</div>
+        <div class="segment this">this</div>
+        <div class="segment that">that</div>
+        <div class="segment pointer">pointer</div>
+      </div>
+      <p>Differences from the <a href="https://www.nand2tetris.org/">Nand2Tetris</a> VM Translator:
         <ul>
           <li>Instead of files, <code>module</code> starts a namespace (which ends with <code>end</code>).</li>
           <li>Function definitions end with <code>end</code>.</li>

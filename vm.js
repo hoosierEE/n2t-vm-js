@@ -76,7 +76,7 @@ window.addEventListener('load',e=>{
   const prog=document.querySelector('#program'),
         cli=document.querySelector('#cli');
   cli.addEventListener('keypress',e=>{
-    if(e.charCode==13 && e.shiftKey){
+    if(e.charCode==13 && !e.shiftKey){
       e.preventDefault();
       prog.value+=cli.value+'\n';
       console.log(cli.value);
@@ -84,20 +84,20 @@ window.addEventListener('load',e=>{
       prog.scrollTop=prog.scrollHeight;
     }
   })
-  prog.value=`//a comment
-bad command
-push constant 3 //blah blah blah
-push constant 2
-label foo
-// more comments
-pop static 0
-pop static 1
-add
-add
-push static 0
-push static 1
-sub
-`;
+//   prog.value=`//a comment
+// bad command
+// push constant 3 //blah blah blah
+// push constant 2
+// label foo
+// // more comments
+// pop static 0
+// pop static 1
+// add
+// add
+// push static 0
+// push static 1
+// sub
+// `;
   prog.scrollTop=prog.scrollHeight;
 })
 
