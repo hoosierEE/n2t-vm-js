@@ -16,24 +16,10 @@ body{
 }
 h1{text-align:center;}
 code{font-size:1.05em;padding:0 1px;border:1px solid var(--vm-tooltip);}
-
+#history{width:100%;height:15em}
+#cli{width:100%;}
 .container{
     border:1px dotted blue;
     display:grid;
-    /* grid-auto-columns:15em; */
-    /* grid-auto-rows:5em; */
-    /* grid-template-columns: 1fr 1fr 1fr 1fr; */
-    /* grid-template-rows: repeat */
-    place-items:stretch;
-    grid-template-areas:
-        "r r stack local this"
-        "r r stack argument that"
-        "r r pointer . .";
+    grid-template-columns: 1fr 1fr;
 }
-.repl textarea{grid-area:r;}
-.stack{grid-area:stack;}
-.local{grid-area:local;}
-.argument{grid-area:argument;}
-.this{grid-area:this;}
-.that{grid-area:that;}
-.pointer{grid-area:pointer;}

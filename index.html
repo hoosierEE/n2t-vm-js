@@ -8,27 +8,28 @@
     <link rel="stylesheet" href="main.css">
   </head>
   <body>
-    <header><h1>VM <em>emulator</em></h1></header>
+    <header><h1>VM-repl</h1></header>
     <main>
       <div class="container">
         <div class="repl">
-          <textarea id="program" placeholder="Program"></textarea>
+          <textarea id="history" placeholder="History"></textarea>
           <textarea id="cli" placeholder="Shift+Enter for multi-line input" autofocus></textarea>
         </div>
-        <div class="segment stack">stack</div>
-        <div class="segment local">local</div>
-        <div class="segment argument">argument</div>
-        <div class="segment this">this</div>
-        <div class="segment that">that</div>
-        <div class="segment pointer">pointer</div>
+        <!-- <div class="topOfRam">RAM</div> -->
+        <!-- <div class="segment stack">stack</div> -->
+        <!-- <div class="segment local">local</div> -->
+        <!-- <div class="segment argument">argument</div> -->
+        <!-- <div class="segment this">this</div> -->
+        <!-- <div class="segment that">that</div> -->
+        <!-- <div class="segment pointer">pointer</div> -->
       </div>
       <p>Differences from the <a href="https://www.nand2tetris.org/">Nand2Tetris</a> VM Translator:
         <ul>
-          <li>Instead of files, <code>module</code> starts a namespace (which ends with <code>end</code>).</li>
-          <li>Function definitions end with <code>end</code>.</li>
+          <li>Function definitions end with a new keyword: <code>end</code>.</li>
         </ul>
       </p>
     </main>
   </body>
   <script src="vm.js"></script>
+  <script src="tests.js"></script>
 </html>
