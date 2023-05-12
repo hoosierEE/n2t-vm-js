@@ -1,14 +1,14 @@
 'use strict';
-let PC=0,RAM,RAMSIZE=32768,
+let PC,RAM,RAMSIZE=32768,
     lut={},//lookup table for label:PC pairs
     code=[];//array of parsed instructions indexed by PC
-const print=console.log;
-const ptr={sp:0,local:1,argument:2,pointer:3,this:3,that:4,temp:5,static:16},
+const print=console.log,
+      ptr={sp:0,local:1,argument:2,pointer:3,this:3,that:4,temp:5,static:16},
       sp=()=>RAM[ptr.sp], s1=()=>sp()-1, s2=()=>sp()-2,
       tokenize=line=>line.split(/\/\//)[0].split(/\s+/).filter(x=>x),
       validName=label=>/^[^0-9]?[a-zA-Z_.:]+/.test(label),
       spDn=()=>{RAM[ptr.sp]-=1};
-const lang={
+const lang={//NOTE: only a couple of these return values
   'pop'     :(s,v)=>{spDn();if('temp'==s)RAM[ptr[s]+v]=RAM[sp()]
                      else if('pointer'==s)RAM[ptr[s]+v]=RAM[sp()]
                      else RAM[RAM[ptr[s]]+v]=RAM[sp()]},
@@ -35,34 +35,25 @@ const lang={
 };
 
 function initRam(size){RAMSIZE=size;RAM=new Int16Array(size);RAM[0]=256}
-function setSegments(l,a,s,t){RAM[ptr.local]=l;RAM[ptr.argument]=110;RAM[ptr.this]=s;RAM[ptr.that]=t}
-function sysInit(size){initRam(size);setSegments(3000,3010,4000,4010)}
-function parse(line){//=>{ok:parsed,err:line}
-  const l=tokenize(line)
-  if(l.length==0) return{ok:l}
-  if(l.length==3) l[2]=parseInt(l[2])
-  return(l[0] in lang)?{ok:l}:{err:line}
-}
-
-function run(parsed,steps){
-  PC=0;code=[];lut={}
-  for(let cmd of parsed){
-    if('err'in cmd){print(cmd);return false}
-    else if(cmd.ok.length) code.push(cmd.ok)
+function resetAll(){RAM=0;PC=0;code=[];lut={}}
+function parse(lines){//=>{ok:[parsed],err:line}
+  const cmds=[]
+  for(let line of lines){
+    const l=tokenize(line)
+    if(l.length==0) continue
+    if(l.length==3) l[2]=parseInt(l[2])
+    if(l[0]in lang) cmds.push(l)
+    else return{err:line}
   }
-  while(PC>=0 && steps-->0){
-    let result = _eval(code[PC])
-    if(result==undefined) PC+=1
-    else PC=result
-  }
+  return {ok:cmds}
 }
-
 function _eval(cmd){
   if(!cmd)return -1
   const[c,...rest]=cmd
   return lang[c](...rest)
 }
 
+// UI
 window.addEventListener('load',e=>{
   const prog=document.querySelector('#history'),
         cli=document.querySelector('#cli');

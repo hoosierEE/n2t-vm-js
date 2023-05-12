@@ -169,28 +169,33 @@ push local 0
 
 };
 
+
 function test(t){
+  resetAll()
   initRam(4000)
+  const parsed=parse(t.prog.split(/\n/))
+  if('err'in parsed)return -1
   if('setup'in t) t.setup()
-  const parsed=t.prog.split(/\n/).map(x=>parse(x))
-  run(parsed,t.steps)
-  let pass=1;
+  const cmds=parsed.ok
+  while(PC>=0 && t.steps-->0){
+    let result=_eval(cmds[PC])
+    if(result==undefined) PC+=1
+    else PC=result
+  }
+
+  let pass=1
   for(let i in t.addr){
-    const ri=RAM[t.addr[i]];
+    const ri=RAM[t.addr[i]]
     if(ri!=t.vals[i]){
-      pass&=0;
-      print(`RAM[${t.addr[i]}]==${ri}, expected: ${t.vals[i]}`);
+      pass&=0
+      print(`RAM[${t.addr[i]}]==${ri}, expected: ${t.vals[i]}`)
     }
   }
-  return pass;
+  return pass
 }
 
 for(let t in tests){
-  initRam(0)
   const result=test(tests[t])
-  if(!result){
-    print(`${t} FAIL`);
-    break;
-  }
-  print(`${t} PASS`)
+  if(result) print(`${t} PASS`)
+  else {print(`${t} FAIL`);break}
 }
