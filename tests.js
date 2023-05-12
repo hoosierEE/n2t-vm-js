@@ -4,6 +4,7 @@ const tests={
 // Pushes and adds two constants.
  push constant 7 //comments too
 push constant 8
+
 add
 `,
     addr:[0, 256],
@@ -13,11 +14,6 @@ add
 
   StackTest:{
     prog:`
-// This file is part of www.nand2tetris.org
-// and the book "The Elements of Computing Systems"
-// by Nisan and Schocken, MIT Press.
-// File name: projects/07/StackArithmetic/StackTest/StackTest.vm
-
 // Executes a sequence of arithmetic and logical operations
 // on the stack.
 push constant 17
@@ -167,14 +163,70 @@ push local 0
     steps:36
   },
 
+  FibonacciSeries:{
+    prog:`push argument 1
+pop pointer 1           // that = argument[1]
+push constant 0
+pop that 0              // first element in the series = 0
+push constant 1
+pop that 1              // second element in the series = 1
+push argument 0
+push constant 2
+sub
+pop argument 0          // num_of_elements -= 2 (first 2 elements are set)
+label MAIN_LOOP_START
+push argument 0
+if-goto COMPUTE_ELEMENT // if num_of_elements > 0, goto COMPUTE_ELEMENT
+goto END_PROGRAM        // otherwise, goto END_PROGRAM
+label COMPUTE_ELEMENT
+push that 0
+push that 1
+add
+pop that 2              // that[2] = that[0] + that[1]
+push pointer 1
+push constant 1
+add
+pop pointer 1           // that += 1
+push argument 0
+push constant 1
+sub
+pop argument 0          // num_of_elements--
+goto MAIN_LOOP_START
+label END_PROGRAM
+`,
+    setup:()=>{RAM[0]=256; RAM[1]=300; RAM[2]=400; RAM[400]=6; RAM[401]=3000;},
+    addr:[3000,3001,3002,3003,3004,3005],
+    vals:[0,1,1,2,3,5],
+    steps:73
+  },
+
+  SimpleFunction:{
+    prog:`function SimpleFunction.test 2
+push local 0
+push local 1
+add
+not
+push argument 0
+add
+push argument 1
+sub
+return
+`,
+    setup:()=>{RAM[0]=317;RAM[1]=317;RAM[2]=310;RAM[3]=3000;RAM[4]=4000;
+               RAM[310]=1234;RAM[311]=37;RAM[312]=1000;RAM[313]=305;
+               RAM[314]=300;RAM[315]=3010;RAM[316]=4010;},
+    addr:[0,1,2,3,4,310],
+    vals:[311,305,300,3010,4010,1196],
+    steps:10
+  },
 };
 
 
 function test(t){
   resetAll()
   initRam(4000)
-  const parsed=parse(t.prog.split(/\n/))
-  if('err'in parsed)return -1
+  const PASS=1,FAIL=0,parsed=parse(t.prog.split(/\n/))
+  if('err'in parsed) return{parse:parsed} //exit early for parse problem
   if('setup'in t) t.setup()
   const cmds=parsed.ok
   while(PC>=0 && t.steps-->0){
@@ -183,19 +235,29 @@ function test(t){
     else PC=result
   }
 
-  let pass=1
+  let status=PASS
+  const errorMessages=[]
   for(let i in t.addr){
     const ri=RAM[t.addr[i]]
     if(ri!=t.vals[i]){
-      pass&=0
-      print(`RAM[${t.addr[i]}]==${ri}, expected: ${t.vals[i]}`)
+      status = FAIL
+      errorMessages.push(`RAM[${t.addr[i]}]==${ri}, expected: ${t.vals[i]}`)
     }
   }
-  return pass
+  return{status,errorMessages}
 }
 
 for(let t in tests){
   const result=test(tests[t])
-  if(result) print(`${t} PASS`)
-  else {print(`${t} FAIL`);break}
+  if(result.status==1) print(`${t} PASS`)
+  else if(result.parse) {
+    print(`${t} FAIL (parse error): ${result.parse.err}`)
+  }
+  else {
+    print(`${t} FAIL (wrong value)`)
+    for(let e of result.errorMessages){
+      print(`  ${e}`)
+    }
+    break
+  }
 }

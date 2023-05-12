@@ -28,7 +28,7 @@ const lang={//NOTE: only a couple of these return values
   'label'   :(l)=>{lut[l]=PC+1},
   'goto'    :(l)=>{return lut[l]},
   'if-goto' :(l)=>{spDn();if(RAM[sp()])return lang['goto'](l)},
-  'function':(f,n)=>{},//n local vars
+  'function':(f,n)=>{lang.label(f);Array(n).fill().map(_=>lang.push('constant',0))},//n local vars
   'call'    :(f,m)=>{},//m args already pushed on stack by caller
   'return'  :()=>{},
   'end'     :()=>{},
@@ -42,7 +42,9 @@ function parse(lines){//=>{ok:[parsed],err:line}
     const l=tokenize(line)
     if(l.length==0) continue
     if(l.length==3) l[2]=parseInt(l[2])
-    if(l[0]in lang) cmds.push(l)
+    if(!(l[0]in lang))return{err:`(${l[0]}) not recognized`}
+    if(lang[l[0]].length != l.length-1)return{err:`${l[0]} expects ${lang[l[0]].length} arguments, got ${l.length-1}`}
+    if(l[0]in lang && lang[l[0]].length == l.length-1) cmds.push(l)
     else return{err:line}
   }
   return {ok:cmds}
