@@ -1,5 +1,8 @@
-* JavaScript backend for Nand2Tetris Virtual Machine
-This project provides a software emulation of the Nand2Tetris virtual machine.
+* Unnamed Virtual Machine
+This project implements an interpreter for a stack-based VM in your browser.
 
-Like the VM Emulator provided by the Nand2Tetris authors, this backend accepts .vm files as input.
-The backend allows you to pause and resume VM execution, inspect or manipulate the virtual RAM contents at any time, and run simple test scripts.
+It is based on the Nand2Tetris VM Translator, but has some differences:
+
+1. (todo) no top-level labels or gotos, labels will only be allowed inside functions.
+2. interpreted rather than ahead-of-time translated
+3. function definitions end with an explicit =end= keyword
