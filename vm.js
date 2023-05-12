@@ -1,7 +1,8 @@
 'use strict';
 let PC,RAM,RAMSIZE=32768,
-    lut={},//lookup table for label:PC pairs
-    code=[];//array of parsed instructions indexed by PC
+    code=[],//array of parsed instructions indexed by PC
+    fun={},//lookup table for function:PC pairs
+    lut={};//lookup table for label:PC pairs
 const print=console.log,
       ptr={sp:0,local:1,argument:2,pointer:3,this:3,that:4,temp:5,static:16},
       sp=()=>RAM[ptr.sp], s1=()=>sp()-1, s2=()=>sp()-2,
@@ -28,14 +29,14 @@ const lang={//NOTE: only a couple of these return values
   'label'   :(l)=>{lut[l]=PC+1},
   'goto'    :(l)=>{return lut[l]},
   'if-goto' :(l)=>{spDn();if(RAM[sp()])return lang['goto'](l)},
-  'function':(f,n)=>{lang.label(f);Array(n).fill().map(_=>lang.push('constant',0))},//n local vars
+  'function':(f,n)=>{fun[f]=PC+1;Array(n).fill().map(_=>lang.push('constant',0))},//n local vars
   'call'    :(f,m)=>{},//m args already pushed on stack by caller
   'return'  :()=>{},
   'end'     :()=>{},
 };
 
 function initRam(size){RAMSIZE=size;RAM=new Int16Array(size);RAM[0]=256}
-function resetAll(){RAM=0;PC=0;code=[];lut={}}
+function resetAll(){RAM=0;PC=0;code=[];fun={};lut={}}
 function parse(lines){//=>{ok:[parsed],err:line}
   const cmds=[]
   for(let line of lines){
