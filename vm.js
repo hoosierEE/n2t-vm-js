@@ -9,7 +9,7 @@ const print=console.log,
       tokenize=line=>line.split(/\/\//)[0].split(/\s+/).filter(x=>x),
       validName=label=>/^[^0-9]?[a-zA-Z_.:]+/.test(label),
       spDn=()=>{RAM[ptr.sp]-=1};
-const lang={//NOTE: only a couple of these return values
+const lang={//NOTE: return value, if any, will be jumped to
   'pop'     :(s,v)=>{spDn();if('temp'==s)RAM[ptr[s]+v]=RAM[sp()]
                      else if('pointer'==s)RAM[ptr[s]+v]=RAM[sp()]
                      else RAM[RAM[ptr[s]]+v]=RAM[sp()]},
@@ -29,9 +29,31 @@ const lang={//NOTE: only a couple of these return values
   'label'   :(l)=>{lut[l]=PC+1},
   'goto'    :(l)=>{return lut[l]},
   'if-goto' :(l)=>{spDn();if(RAM[sp()])return lang['goto'](l)},
-  'function':(f,n)=>{fun[f]=PC+1;Array(n).fill().map(_=>lang.push('constant',0))},//n local vars
-  'call'    :(f,m)=>{},//m args already pushed on stack by caller
-  'return'  :()=>{},
+  'function':(f,n)=>{//n local vars
+    fun[f]=PC+1
+    Array(n).fill().map(_=>lang.push('constant',0))
+  },
+  'call'    :(f,m)=>{//m args already pushed on stack by caller
+    lang.push('constant',PC+1)//push return address
+    lang.push('constant',RAM[ptr.local])
+    lang.push('constant',RAM[ptr.argument])
+    lang.push('constant',RAM[ptr.this])
+    lang.push('constant',RAM[ptr.that])
+    RAM[ptr.argument]=sp()-m-5
+    RAM[ptr.local]=sp()
+    RAM[ptr.sp]+=5
+    return fun[f]
+  },
+  'return'  :()=>{
+    const frame=RAM[ptr.local];
+    RAM[RAM[ptr.argument]]=RAM[s1()]
+    RAM[ptr.sp]=RAM[ptr.argument]+1
+    RAM[ptr.that]=RAM[frame-1]
+    RAM[ptr.this]=RAM[frame-2]
+    RAM[ptr.argument]=RAM[frame-3]
+    RAM[ptr.local]=RAM[frame-4]
+    return RAM[frame-5]
+  },
   'end'     :()=>{},
 };
 
@@ -42,9 +64,9 @@ function parse(lines){//=>{ok:[parsed],err:line}
   for(let line of lines){
     const l=tokenize(line)
     if(l.length==0) continue
-    if(l.length==3) l[2]=parseInt(l[2])
     if(!(l[0]in lang))return{err:`(${l[0]}) not recognized`}
     if(lang[l[0]].length != l.length-1)return{err:`${l[0]} expects ${lang[l[0]].length} arguments, got ${l.length-1}`}
+    if(l.length==3) l[2]=parseInt(l[2])
     if(l[0]in lang && lang[l[0]].length == l.length-1) cmds.push(l)
     else return{err:line}
   }
