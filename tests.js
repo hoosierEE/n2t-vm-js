@@ -310,7 +310,7 @@ function test(t){
   resetAll()
   initRam(6000)
   const PASS=1,FAIL=0,parsed=parse(t.prog.split(/\n/))
-  if('err'in parsed) return{parse:parsed} //exit early for parse problem
+  if('err'in parsed) return{parse:parsed} //parse error? return
   if('setup'in t) t.setup()
   const cmds=parsed.ok
   while(PC>=0 && t.steps-->0){

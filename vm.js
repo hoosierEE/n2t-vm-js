@@ -67,18 +67,25 @@ const lang={//NOTE: return value, if any, will be jumped to
 
 function initRam(size){RAMSIZE=size;RAM=new Int16Array(size);RAM[0]=256}
 function resetAll(){RAM=0;PC=0;code=[];fun={};lut={}}
+function parse1(line){
+  const l=tokenize(line)
+  if(l.length==0) return{nop:line}
+  if(!(l[0]in lang)) return{err:`(${l[0]}) not recognized`}
+  if(lang[l[0]].length != l.length-1)
+    return{err:`${l[0]} expects ${lang[l[0]].length} arguments, got ${l.length-1}: ${l}`}
+  if(l.length==3) l[2]=parseInt(l[2])
+  if(l[0]in lang && lang[l[0]].length == l.length-1) return l
+  else return{err:line}
+}
 function parse(lines){//=>{ok:[parsed],err:line}
   const cmds=[]
   for(let line of lines){
-    const l=tokenize(line)
-    if(l.length==0) continue
-    if(!(l[0]in lang))return{err:`(${l[0]}) not recognized`}
-    if(lang[l[0]].length != l.length-1)return{err:`${l[0]} expects ${lang[l[0]].length} arguments, got ${l.length-1}`}
-    if(l.length==3) l[2]=parseInt(l[2])
-    if(l[0]in lang && lang[l[0]].length == l.length-1) cmds.push(l)
-    else return{err:line}
+    const x=parse1(line)
+    if('err'in x)return x
+    if('nop'in x)continue
+    else cmds.push(x)
   }
-  return {ok:cmds}
+  return{ok:cmds}
 }
 function run(cmd){
   if(!cmd)return -1//null or undefined command
