@@ -333,10 +333,10 @@ function test(t){
 
 for(let t in tests){
   const result=test(tests[t])
-  if(result.status==1) print(`${t} PASS`)
-  else if(result.parse){print(`${t} FAIL (parse error): ${result.parse.err}`);break}
+  if(result.status==1) print(`${t} ✅`)
+  else if(result.parse){print(`${t} ❌ (parse error): ${result.parse.err}`);break}
   else {
-    print(`${t} FAIL (wrong value):`)
+    print(`${t} ❌ wrong value(s):`)
     for(let e of result.errorMessages){print(`  ${e}`);}
     break
   }

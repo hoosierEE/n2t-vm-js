@@ -8,27 +8,24 @@
     <link rel="stylesheet" href="main.css">
   </head>
   <body>
-    <!-- <header><h1>VM-repl</h1></header> -->
+    <header><h1>VM-repl</h1></header>
     <main>
       <div class="container">
         <p>
-          TODO: allow user to type VM code in a text box like a REPL.
-          Keep the previously typed commands in a separate history text area.
+          TODO: Evaluate user typed VM commands, REPL-style.
+          <br>
+          Maybe add a CodeMirror editor widget with pretty syntax highlighting.
         </p>
 
-        <!-- <div class="repl"> -->
-        <!--   <textarea id="history" placeholder="History"></textarea> -->
-        <!--   <textarea id="cli" placeholder="Shift+Enter for multi-line input" autofocus></textarea> -->
-        <!-- </div> -->
+        <div class="repl">
+          <textarea id="history" placeholder="History"></textarea>
+          <textarea id="cli" placeholder="Shift+Enter for multi-line input" autofocus></textarea>
+        </div>
 
         <div class="memview">
-          <p>
-            TODO: Display stack frames here, with a button to advance the VM to the next instruction.
-          </p>
-          <p>
-            Open the console to see what tests are passing or failing.
-          </p>
-          <button>VM step</button>
+          <p> TODO: Display current stack frames.</p>
+          <p>TODO: Add a button to advance the VM to the next instruction.</p>
+          <button>VM step</button> (Ok, now actually make the button do something.)
           <div class="items"></div>
         </div>
         <hr></hr>
@@ -36,7 +33,9 @@
 
       </div>
       <div class="container">
-        <div class="messages"></div>
+        <div class="messages">
+          <h4>Self-Tests</h4>
+        </div>
       </div>
       <p>Differences from the <a href="https://www.nand2tetris.org/">Nand2Tetris</a> VM Translator:
         <ul>

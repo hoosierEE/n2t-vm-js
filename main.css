@@ -20,6 +20,11 @@ code{font-size:1.05em;padding:0 1px;border:1px solid var(--vm-tooltip);}
 #cli{width:100%;}
 .container{
     border:1px dotted blue;
-    display:grid;
-    grid-template-columns: 1fr 1fr;
+    /* display:grid; */
+    /* grid-template-columns: 1fr 1fr; */
+}
+
+.messages p{
+    margin:auto;
+    font-family:monospace
 }

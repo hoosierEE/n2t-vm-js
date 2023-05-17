@@ -3,7 +3,12 @@ let PC,RAM,RAMSIZE=32768,
     code=[],//array of parsed instructions indexed by PC
     fun={},//lookup table for function:PC pairs
     lut={};//lookup table for label:PC pairs
-const print=(x)=>{const r=x.replace(/^ +/,s=>'&nbsp'.repeat(s.length));document.querySelector("div.messages").innerHTML+=`<p>${r}</p>`},
+const print=(x)=>{
+  const y=typeof x=='string'?x:JSON.stringify(x)
+  const r=y.replace(/^ +/,s=>'&nbsp'.repeat(s.length));
+  document.querySelector("div.messages").innerHTML+=`<p>${r}</p>`
+},
+      log=console.log,
       ptr={sp:0,local:1,argument:2,pointer:3,this:3,that:4,temp:5,static:16},
       sp=()=>RAM[ptr.sp], s1=()=>sp()-1, s2=()=>sp()-2,
       tokenize=line=>line.split(/\/\//)[0].split(/\s+/).filter(x=>x),
@@ -46,7 +51,8 @@ const lang={//NOTE: return value, if any, will be jumped to
   //FIXME: this/that are correct after NestedCall, but other stack values are wrong
   'call'    :(f,m)=>{//m args already pushed on stack by caller
     // print(`call ${f} ${m}`)
-    // print(RAM.slice(0,5), RAM.slice(sp(),sp()+5))
+    // print(RAM.slice(0,5))
+    // print(RAM.slice(sp(),sp()+5))
     lang.push('constant',PC+1)//push return address
     lang.push('constant',RAM[ptr.local])
     lang.push('constant',RAM[ptr.argument])
@@ -54,8 +60,9 @@ const lang={//NOTE: return value, if any, will be jumped to
     lang.push('constant',RAM[ptr.that])
     RAM[ptr.argument]=sp()-m-5
     RAM[ptr.local]=sp()
-    // print(RAM.slice(0,5), RAM.slice(sp(),sp()+5))
-    // RAM[ptr.sp]+=5
+    // print(RAM.slice(0,5))
+    // print(RAM.slice(sp(),sp()+5))
+    RAM[ptr.sp]+=5
     return fun[f]
   },
   'end'     :()=>{},//allows mixing top-level code with function definitions
@@ -83,20 +90,19 @@ function run(cmd){
 }
 
 // UI
-// window.addEventListener('load',e=>{
-//   const prog=document.querySelector('#history'),
-//         cli=document.querySelector('#cli'),
-//         button=document.querySelector('button'),
-//         view=document.querySelector('div.memview div.items');
-//   // print(button)
-//   button.addEventListener('click',e=>print(e))
-//   cli.addEventListener('keypress',e=>{
-//     if(e.charCode==13 && !e.shiftKey){
-//       e.preventDefault()
-//       prog.value+=cli.value.trim()+'\n'
-//       cli.value=''
-//       prog.scrollTop=prog.scrollHeight
-//     }
-//   })
-//   prog.scrollTop=prog.scrollHeight
-// })
+window.addEventListener('load',e=>{
+  const prog=document.querySelector('#history'),
+        cli=document.querySelector('#cli'),
+        button=document.querySelector('button'),
+        view=document.querySelector('div.memview div.items');
+  button.addEventListener('click',e=>print(e))
+  cli.addEventListener('keypress',e=>{
+    if(e.charCode==13 && !e.shiftKey){
+      e.preventDefault()
+      prog.value+=cli.value.trim()+'\n'
+      cli.value=''
+      prog.scrollTop=prog.scrollHeight
+    }
+  })
+  prog.scrollTop=prog.scrollHeight
+})
