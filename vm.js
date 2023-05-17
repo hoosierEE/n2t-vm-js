@@ -3,20 +3,21 @@ let PC,RAM,RAMSIZE=32768,
     code=[],//array of parsed instructions indexed by PC
     fun={},//lookup table for function:PC pairs
     lut={};//lookup table for label:PC pairs
-const print=console.log,
+const print=(x)=>{const r=x.replace(/^ +/,s=>'&nbsp'.repeat(s.length));document.querySelector("div.messages").innerHTML+=`<p>${r}</p>`},
       ptr={sp:0,local:1,argument:2,pointer:3,this:3,that:4,temp:5,static:16},
       sp=()=>RAM[ptr.sp], s1=()=>sp()-1, s2=()=>sp()-2,
       tokenize=line=>line.split(/\/\//)[0].split(/\s+/).filter(x=>x),
       validName=label=>/^[^0-9]?[a-zA-Z_.:]+/.test(label),
-      spDn=()=>{RAM[ptr.sp]-=1};
+      spDn=()=>{RAM[ptr.sp]-=1},
+      spUp=()=>{RAM[ptr.sp]+=1};
 const lang={//NOTE: return value, if any, will be jumped to
-  'pop'     :(s,v)=>{spDn();if('temp'==s)RAM[ptr[s]+v]=RAM[sp()]
+  'pop'     :(s,v)=>{spDn(); if('temp'==s)RAM[ptr[s]+v]=RAM[sp()]
                      else if('pointer'==s)RAM[ptr[s]+v]=RAM[sp()]
                      else RAM[RAM[ptr[s]]+v]=RAM[sp()]},
   'push'    :(s,v)=>{if('constant'==s)RAM[sp()]=v
                      else if('temp'==s)RAM[sp()]=RAM[ptr[s]+v]
                      else if('pointer'==s)RAM[sp()]=RAM[ptr[s]+v]
-                     else RAM[sp()]=RAM[RAM[ptr[s]]+v];RAM[ptr.sp]+=1},
+                     else RAM[sp()]=RAM[RAM[ptr[s]]+v]; spUp()},
   'add'     :()=>{RAM[s2()]=   RAM[s2()] +RAM[s1()];spDn()},
   'and'     :()=>{RAM[s2()]=   RAM[s2()] &RAM[s1()];spDn()},
   'or'      :()=>{RAM[s2()]=   RAM[s2()] |RAM[s1()];spDn()},
@@ -29,21 +30,8 @@ const lang={//NOTE: return value, if any, will be jumped to
   'label'   :(l)=>{lut[l]=PC+1},
   'goto'    :(l)=>{return lut[l]},
   'if-goto' :(l)=>{spDn();if(RAM[sp()])return lang['goto'](l)},
-  'function':(f,n)=>{//n local vars
-    fun[f]=PC+1
-    Array(n).fill().map(_=>lang.push('constant',0))
-  },
-  'call'    :(f,m)=>{//m args already pushed on stack by caller
-    lang.push('constant',PC+1)//push return address
-    lang.push('constant',RAM[ptr.local])
-    lang.push('constant',RAM[ptr.argument])
-    lang.push('constant',RAM[ptr.this])
-    lang.push('constant',RAM[ptr.that])
-    RAM[ptr.argument]=sp()-m-5
-    RAM[ptr.local]=sp()
-    RAM[ptr.sp]+=5
-    return fun[f]
-  },
+  // 'function':(f,n)=>{fun[f]=PC+1;Array(n).fill().map(_=>lang.push('constant',0))},
+  'function':(f,n)=>{fun[f]=PC+1;for(let i=0;i<n;i++)lang.push('constant',0)},
   'return'  :()=>{
     const frame=RAM[ptr.local];
     RAM[RAM[ptr.argument]]=RAM[s1()]
@@ -54,7 +42,23 @@ const lang={//NOTE: return value, if any, will be jumped to
     RAM[ptr.local]=RAM[frame-4]
     return RAM[frame-5]
   },
-  'end'     :()=>{},
+
+  //FIXME: this/that are correct after NestedCall, but other stack values are wrong
+  'call'    :(f,m)=>{//m args already pushed on stack by caller
+    // print(`call ${f} ${m}`)
+    // print(RAM.slice(0,5), RAM.slice(sp(),sp()+5))
+    lang.push('constant',PC+1)//push return address
+    lang.push('constant',RAM[ptr.local])
+    lang.push('constant',RAM[ptr.argument])
+    lang.push('constant',RAM[ptr.this])
+    lang.push('constant',RAM[ptr.that])
+    RAM[ptr.argument]=sp()-m-5
+    RAM[ptr.local]=sp()
+    // print(RAM.slice(0,5), RAM.slice(sp(),sp()+5))
+    // RAM[ptr.sp]+=5
+    return fun[f]
+  },
+  'end'     :()=>{},//allows mixing top-level code with function definitions
 };
 
 function initRam(size){RAMSIZE=size;RAM=new Int16Array(size);RAM[0]=256}
@@ -72,23 +76,27 @@ function parse(lines){//=>{ok:[parsed],err:line}
   }
   return {ok:cmds}
 }
-function _eval(cmd){
-  if(!cmd)return -1
+function run(cmd){
+  if(!cmd)return -1//null or undefined command
   const[c,...rest]=cmd
-  return lang[c](...rest)
+  return lang[c](...rest)//commands return undefined or a new PC value
 }
 
 // UI
-window.addEventListener('load',e=>{
-  const prog=document.querySelector('#history'),
-        cli=document.querySelector('#cli');
-  cli.addEventListener('keypress',e=>{
-    if(e.charCode==13 && !e.shiftKey){
-      e.preventDefault()
-      prog.value+=cli.value.trim()+'\n'
-      cli.value=''
-      prog.scrollTop=prog.scrollHeight
-    }
-  })
-  prog.scrollTop=prog.scrollHeight
-})
+// window.addEventListener('load',e=>{
+//   const prog=document.querySelector('#history'),
+//         cli=document.querySelector('#cli'),
+//         button=document.querySelector('button'),
+//         view=document.querySelector('div.memview div.items');
+//   // print(button)
+//   button.addEventListener('click',e=>print(e))
+//   cli.addEventListener('keypress',e=>{
+//     if(e.charCode==13 && !e.shiftKey){
+//       e.preventDefault()
+//       prog.value+=cli.value.trim()+'\n'
+//       cli.value=''
+//       prog.scrollTop=prog.scrollHeight
+//     }
+//   })
+//   prog.scrollTop=prog.scrollHeight
+// })

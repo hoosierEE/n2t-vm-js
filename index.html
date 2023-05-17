@@ -8,24 +8,39 @@
     <link rel="stylesheet" href="main.css">
   </head>
   <body>
-    <header><h1>VM-repl</h1></header>
+    <!-- <header><h1>VM-repl</h1></header> -->
     <main>
       <div class="container">
-        <div class="repl">
-          <textarea id="history" placeholder="History"></textarea>
-          <textarea id="cli" placeholder="Shift+Enter for multi-line input" autofocus></textarea>
+        <p>
+          TODO: allow user to type VM code in a text box like a REPL.
+          Keep the previously typed commands in a separate history text area.
+        </p>
+
+        <!-- <div class="repl"> -->
+        <!--   <textarea id="history" placeholder="History"></textarea> -->
+        <!--   <textarea id="cli" placeholder="Shift+Enter for multi-line input" autofocus></textarea> -->
+        <!-- </div> -->
+
+        <div class="memview">
+          <p>
+            TODO: Display stack frames here, with a button to advance the VM to the next instruction.
+          </p>
+          <p>
+            Open the console to see what tests are passing or failing.
+          </p>
+          <button>VM step</button>
+          <div class="items"></div>
         </div>
-        <!-- <div class="topOfRam">RAM</div> -->
-        <!-- <div class="segment stack">stack</div> -->
-        <!-- <div class="segment local">local</div> -->
-        <!-- <div class="segment argument">argument</div> -->
-        <!-- <div class="segment this">this</div> -->
-        <!-- <div class="segment that">that</div> -->
-        <!-- <div class="segment pointer">pointer</div> -->
+        <hr></hr>
+
+
+      </div>
+      <div class="container">
+        <div class="messages"></div>
       </div>
       <p>Differences from the <a href="https://www.nand2tetris.org/">Nand2Tetris</a> VM Translator:
         <ul>
-          <li>Function definitions end with a new keyword: <code>end</code>.</li>
+          <li>(TODO) Function definitions end with a new keyword: <code>end</code>.</li>
         </ul>
       </p>
     </main>
