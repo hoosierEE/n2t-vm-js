@@ -50,19 +50,16 @@ const lang={//NOTE: return value, if any, will be jumped to
 
   //FIXME: this/that are correct after NestedCall, but other stack values are wrong
   'call'    :(f,m)=>{//m args already pushed on stack by caller
-    // print(`call ${f} ${m}`)
-    // print(RAM.slice(0,5))
-    // print(RAM.slice(sp(),sp()+5))
-    lang.push('constant',PC+1)//push return address
-    lang.push('constant',RAM[ptr.local])
-    lang.push('constant',RAM[ptr.argument])
-    lang.push('constant',RAM[ptr.this])
-    lang.push('constant',RAM[ptr.that])
-    RAM[ptr.argument]=sp()-m-5
-    RAM[ptr.local]=sp()
-    // print(RAM.slice(0,5))
-    // print(RAM.slice(sp(),sp()+5))
-    RAM[ptr.sp]+=5
+    // print(RAM.slice(0,5));print(RAM.slice(sp(),sp()+5))
+    const SP=ptr.sp
+    RAM[RAM[SP]+0]=PC+1//return address
+    RAM[RAM[SP]+1]=RAM[RAM[ptr.local]]
+    RAM[RAM[SP]+2]=RAM[RAM[ptr.argument]]
+    RAM[RAM[SP]+3]=RAM[RAM[ptr.this]]
+    RAM[RAM[SP]+4]=RAM[RAM[ptr.that]]
+    RAM[RAM[ptr.argument]]=sp()-m-5
+    RAM[RAM[ptr.local]]=sp()
+    spUp()
     return fun[f]
   },
   'end'     :()=>{},//allows mixing top-level code with function definitions
