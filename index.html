@@ -11,32 +11,46 @@
     <header><h1>VM-repl</h1></header>
     <main>
       <div class="container">
-        <p>
-          TODO: Evaluate user typed VM commands, REPL-style.
-          <br>
-          Maybe add a CodeMirror editor widget with pretty syntax highlighting.
-        </p>
 
         <div class="repl">
           <textarea id="history" placeholder="History"></textarea>
           <textarea id="cli" placeholder="Shift+Enter for multi-line input" autofocus></textarea>
         </div>
 
-        <div class="memview">
-          <p> TODO: Display current stack frames.</p>
-          <p>TODO: Add a button to advance the VM to the next instruction.</p>
-          <button>VM step</button> (Ok, now actually make the button do something.)
-          <div class="items"></div>
-        </div>
-        <hr></hr>
+        <ul>
+          TODO:
+          <li>Evaluate user typed VM commands, REPL-style. Maybe add a CodeMirror editor widget with pretty syntax highlighting.</li>
+          <li>Display current stack frames.</li>
+          <li>Add a button to advance the VM to the next instruction.</li>
+        </ul>
 
+        <button>VM step</button> (Ok, now actually make the button do something.)
+
+        <hr/>
+
+        <div id="memory">
+          <div>
+            <h2>bits o' RAM</h2>
+            <div id="memview"></div>
+          </div>
+
+          <div>
+            <h2>stack</h2>
+            <div id="stack"></div>
+          </div>
+        </div>
+
+        <hr/>
 
       </div>
       <div class="container">
         <div class="messages">
-          <h4>Self-Tests</h4>
+          <h2>Self-Tests</h2>
         </div>
       </div>
+
+      <hr/>
+
       <p>Differences from the <a href="https://www.nand2tetris.org/">Nand2Tetris</a> VM Translator:
         <ul>
           <li>(TODO) Function definitions end with a new keyword: <code>end</code>.</li>

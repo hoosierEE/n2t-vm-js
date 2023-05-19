@@ -12,12 +12,11 @@ const print=(x)=>{
       ptr={sp:0,local:1,argument:2,pointer:3,this:3,that:4,temp:5,static:16},
       sp=()=>RAM[ptr.sp], s1=()=>sp()-1, s2=()=>sp()-2,
       tokenize=line=>line.split(/\/\//)[0].split(/\s+/).filter(x=>x),
-      validName=label=>/^[^0-9]?[a-zA-Z_.:]+/.test(label),
+      // validName=label=>/^[^0-9]?[a-zA-Z_.:]+/.test(label),
       spDn=()=>{RAM[ptr.sp]-=1},
       spUp=()=>{RAM[ptr.sp]+=1};
-const lang={//NOTE: return value, if any, will be jumped to
-  'pop'     :(s,v)=>{spDn(); if('temp'==s)RAM[ptr[s]+v]=RAM[sp()]
-                     else if('pointer'==s)RAM[ptr[s]+v]=RAM[sp()]
+const lang={//NOTE: PC=(return value)||PC+1
+  'pop'     :(s,v)=>{spDn(); if(['pointer','temp'].includes(s))RAM[ptr[s]+v]=RAM[sp()]
                      else RAM[RAM[ptr[s]]+v]=RAM[sp()]},
   'push'    :(s,v)=>{if('constant'==s)RAM[sp()]=v
                      else if('temp'==s)RAM[sp()]=RAM[ptr[s]+v]
@@ -35,7 +34,6 @@ const lang={//NOTE: return value, if any, will be jumped to
   'label'   :(l)=>{lut[l]=PC+1},
   'goto'    :(l)=>{return lut[l]},
   'if-goto' :(l)=>{spDn();if(RAM[sp()])return lang['goto'](l)},
-  // 'function':(f,n)=>{fun[f]=PC+1;Array(n).fill().map(_=>lang.push('constant',0))},
   'function':(f,n)=>{fun[f]=PC+1;for(let i=0;i<n;i++)lang.push('constant',0)},
   'return'  :()=>{
     const frame=RAM[ptr.local];
@@ -48,7 +46,7 @@ const lang={//NOTE: return value, if any, will be jumped to
     return RAM[frame-5]
   },
 
-  //FIXME: this/that are correct after NestedCall, but other stack values are wrong
+  //FIXME: temp segment
   'call'    :(f,m)=>{//m args already pushed on stack by caller
     // print(RAM.slice(0,5));print(RAM.slice(sp(),sp()+5))
     const SP=ptr.sp
@@ -62,7 +60,7 @@ const lang={//NOTE: return value, if any, will be jumped to
     spUp()
     return fun[f]
   },
-  'end'     :()=>{},//allows mixing top-level code with function definitions
+  'end'     :()=>{},//so repl knows when function ends
 };
 
 function initRam(size){RAMSIZE=size;RAM=new Int16Array(size);RAM[0]=256}
@@ -93,20 +91,45 @@ function run(cmd){
   return lang[c](...rest)//commands return undefined or a new PC value
 }
 
-// UI
+function tag(e,value){
+  let [x,...cls]=e.split(' ')
+  cls=(cls.length)?` class="${cls.join(' ')}"`:''
+  return`<${x}${cls}>${value}</${x}>`
+}
+
+const si=x=>tag('span index',x),sv=x=>tag('span value',x)
+
+function showRam(N){
+  const h=tag('div ramhead',si('address')+sv('value'))
+  const r=Array.from(RAM.slice(0,N)).map((x,i)=>tag('div ramrow',si(i)+sv(x))).join('')
+  return tag('div ramtop',h+r)
+}
+
+function showStack(spStart){
+  const h=tag('div ramhead',si('address')+sv('value'))
+  const r=Array.from(RAM.slice(spStart,sp())).map((x,i)=>tag('div ramrow',si(i+spStart)+sv(x)))
+  return tag('div ramtop',h+r.reverse().join(''))
+}
+
+function update(){
+  document.querySelector('#memview').innerHTML=showRam(16)
+  document.querySelector('#stack').innerHTML=showStack(256)
+}
+
 window.addEventListener('load',e=>{
   const prog=document.querySelector('#history'),
-        cli=document.querySelector('#cli'),
-        button=document.querySelector('button'),
-        view=document.querySelector('div.memview div.items');
-  button.addEventListener('click',e=>print(e))
+        cli=document.querySelector('#cli');
+
   cli.addEventListener('keypress',e=>{
     if(e.charCode==13 && !e.shiftKey){
       e.preventDefault()
       prog.value+=cli.value.trim()+'\n'
       cli.value=''
       prog.scrollTop=prog.scrollHeight
+      update()
     }
   })
+  document.querySelector('button').addEventListener('click',update)
   prog.scrollTop=prog.scrollHeight
+  update()
 })
