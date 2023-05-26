@@ -24,7 +24,11 @@
           <li>Add a button to advance the VM to the next instruction.</li>
         </ul>
 
-        <button>VM step</button> (Ok, now actually make the button do something.)
+        <button>VM step</button>
+        <label for="test-chooser">Choose a test:</label>
+        <select name="picker" id="test-chooser">
+          <option value=""></option>
+        </select>
 
         <hr/>
 
@@ -37,6 +41,12 @@
           <div>
             <h2>stack</h2>
             <div id="stack"></div>
+          </div>
+
+          <div>
+            <h2>program</h2>
+            <h3 id="programName"></h3>
+            <div id="program"></div>
           </div>
         </div>
 
@@ -58,6 +68,6 @@
       </p>
     </main>
   </body>
+  <script src="selftests.js"></script>
   <script src="vm.js"></script>
-  <script src="tests.js"></script>
 </html>

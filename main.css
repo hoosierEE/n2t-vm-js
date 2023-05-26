@@ -1,4 +1,4 @@
-:root{--vm-text:#333;--vm-bg:#eee;--vm-link:#07b;--vm-tooltip:#888;}
+:root{--vm-text:#333;--vm-bg:#eee;--vm-link:#07b;--vm-tooltip:#888;--current-instruction:#ff0}
 @media(prefers-color-scheme:dark){
     :root{--vm-text:#eee;--vm-bg:#555;--vm-link:#7cf;}
     img:not([src$=".svg"]){filter:brightness(70%);}
@@ -21,7 +21,11 @@ code{font-size:1.05em;padding:0 1px;border:1px solid var(--vm-tooltip);}
 #memory{
     width:100%;
     display:grid;
-    grid-template-columns:1fr 1fr;
+    grid-template-columns:1fr 1fr 1fr;
+}
+#program{
+    overflow:auto;
+    max-height:16em;
 }
 .container{
     /* border:1px dotted blue; */
@@ -32,6 +36,10 @@ code{font-size:1.05em;padding:0 1px;border:1px solid var(--vm-tooltip);}
 .messages p{
     margin:auto;
     font-family:monospace
+}
+
+.hl{
+    background-color:var(--current-instruction)
 }
 
 .ramrow,.ramhead{

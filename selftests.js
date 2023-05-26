@@ -1,10 +1,7 @@
 const tests={
   SimpleAdd:{
-    prog:`
-// Pushes and adds two constants.
- push constant 7 //comments too
+    prog:`push constant 7
 push constant 8
-
 add
 `,
     addr:[0, 256],
@@ -243,124 +240,79 @@ pop temp 3
     steps:13
   },
 
-//   NestedCall:{
-//     prog:`// Sys.vm for NestedCall test.
+  NestedCall:{
+    prog:`
+// Sys.vm for NestedCall test.
+// call Sys.init 0 //bootstrap manually
+// Sys.init()
+// Calls Sys.main() and stores return value in temp 1.
+// Does not return.  (Enters infinite loop.)
+function Sys.init 0
+push constant 4000  // test THIS and THAT context save
+pop pointer 0
+push constant 5000
+pop pointer 1
+call Sys.main 0
+pop temp 1
+label LOOP
+goto LOOP
 
-// // Sys.init()
-// //
-// // Calls Sys.main() and stores return value in temp 1.
-// // Does not return.  (Enters infinite loop.)
+// Sys.main()
+// Sets locals 1, 2 and 3, leaving locals 0 and 4 unchanged to test
+// default local initialization to 0.  (RAM set to -1 by test setup.)
+// Calls Sys.add12(123) and stores return value (135) in temp 0.
+// Returns local 0 + local 1 + local 2 + local 3 + local 4 (456) to confirm
+// that locals were not mangled by function call.
+function Sys.main 5
+push constant 4001
+pop pointer 0
+push constant 5001
+pop pointer 1
+push constant 200
+pop local 1
+push constant 40
+pop local 2
+push constant 6
+pop local 3
+push constant 123
+call Sys.add12 1
+pop temp 0
+push local 0
+push local 1
+push local 2
+push local 3
+push local 4
+add
+add
+add
+add
+return
+end
 
-// function Sys.init 0
-// push constant 4000  // test THIS and THAT context save
-// pop pointer 0
-// push constant 5000
-// pop pointer 1
-// call Sys.main 0
-// pop temp 1
-// label LOOP
-// goto LOOP
-
-// // Sys.main()
-// //
-// // Sets locals 1, 2 and 3, leaving locals 0 and 4 unchanged to test
-// // default local initialization to 0.  (RAM set to -1 by test setup.)
-// // Calls Sys.add12(123) and stores return value (135) in temp 0.
-// // Returns local 0 + local 1 + local 2 + local 3 + local 4 (456) to confirm
-// // that locals were not mangled by function call.
-
-// function Sys.main 5
-// push constant 4001
-// pop pointer 0
-// push constant 5001
-// pop pointer 1
-// push constant 200
-// pop local 1
-// push constant 40
-// pop local 2
-// push constant 6
-// pop local 3
-// push constant 123
-// call Sys.add12 1
-// pop temp 0
-// push local 0
-// push local 1
-// push local 2
-// push local 3
-// push local 4
-// add
-// add
-// add
-// add
-// return
-
-// // Sys.add12(int n)
-// //
-// // Returns n+12.
-
-// function Sys.add12 0
-// push constant 4002
-// pop pointer 0
-// push constant 5002
-// pop pointer 1
-// push argument 0
-// push constant 12
-// add
-// return
-
-// // call Sys.init 0 //bootstrap manually
-// `,
-//     setup:()=>{
-//       RAM[0]=261; RAM[1]=261; RAM[2]=256; RAM[3]=-3; RAM[4]=-4;
-//       RAM[5]=-1; RAM[6]=-1; // test results
-//       RAM[256]=1234; // fake stack frame from call Sys.init
-//       RAM[257]=-1; RAM[258]=-2; RAM[259]=-3; RAM[260]=-4;
-//       for(let i=261;i<300;i++){RAM[i]=-1;}
-//       RAM[sp.this]=3000
-//       RAM[sp.that]=4000
-//     },
-//     addr:[  0,  1,  2,   3,   4,  5,  6],
-//     vals:[261,261,256,4000,5000,135,246],
-//     steps:50,
-//   },
+// Sys.add12(int n) // Returns n+12.
+function Sys.add12 0
+push constant 4002
+pop pointer 0
+push constant 5002
+pop pointer 1
+push argument 0
+push constant 12
+add
+return
+end
+`,
+    setup:()=>{
+      RAM[0]=261; RAM[1]=261; RAM[2]=256; RAM[3]=-3; RAM[4]=-4;
+      RAM[5]=-1; RAM[6]=-1; // test results
+      RAM[256]=1234; // fake stack frame from call Sys.init
+      RAM[257]=-1; RAM[258]=-2; RAM[259]=-3; RAM[260]=-4;
+      for(let i=261;i<300;i++){RAM[i]=-1;}
+      RAM[sp.this]=3000
+      RAM[sp.that]=4000
+    },
+    addr:[  0,  1,  2,   3,   4,  5,  6],
+    vals:[261,261,256,4000,5000,135,246],
+    steps:50,
+  },
 
 };
-
-
-function test(t){
-  resetAll()
-  initRam(6000)
-  const PASS=1,FAIL=0,parsed=parse(t.prog.split(/\n/))
-  if('err'in parsed) return{parse:parsed} //parse error? return
-  if('setup'in t) t.setup()
-  const cmds=parsed.ok
-  while(PC>=0 && t.steps-->0){
-    let result=run(cmds[PC])
-    if(result==undefined) PC+=1
-    else PC=result
-  }
-
-  let status=PASS
-  const errorMessages=[]
-  for(let i in t.addr){
-    const ri=RAM[t.addr[i]]
-    if(ri!=t.vals[i]){
-      status = FAIL
-      errorMessages.push(`RAM[${t.addr[i]}]==${ri}, expected: ${t.vals[i]}`)
-    }
-  }
-  return{status,errorMessages}
-}
-
-for(let t in tests){
-  const result=test(tests[t])
-  if(result.status==1) print(`${t} ✅`)
-  else if(result.parse){print(`${t} ❌ (parse error): ${result.parse.err}`);break}
-  else {
-    print(`${t} ❌ wrong value(s):`)
-    for(let e of result.errorMessages){print(`  ${e}`);}
-    print(RAM.slice(0,7))
-    print(RAM.slice(sp(),sp()+5))
-    break
-  }
-}
